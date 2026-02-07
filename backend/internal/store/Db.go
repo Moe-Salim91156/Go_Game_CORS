@@ -9,14 +9,14 @@ import (
 func OpenConnection() (*sql.DB, error) {
 	db, err := sql.Open("sqlite3", "./app.db")
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 	defer db.Close()
 
 	return db, nil
 }
 
-// init tables
+// -> init tables
 func CreateTables(db *sql.DB) error {
 
 	UserTableQuery := `CREATE TABLE IF NOT EXISTS Players (
