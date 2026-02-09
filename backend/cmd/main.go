@@ -71,5 +71,6 @@ func main() {
 	}
 	updatedState, _ = gStore.GetGameState(roomID)
 	fmt.Printf("After Move  -> Turn ID: %d (Should be alice/1)\n", updatedState.Turn_id)
+	fmt.Println(updatedState.Board)
 
 }

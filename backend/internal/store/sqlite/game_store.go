@@ -14,8 +14,6 @@ func NewGameStore(db *sql.DB) *GameStore {
 	return &GameStore{db: db}
 }
 
-// create game room for player_x ,
-// later implement joiin room where we insert palyer_o and update game state to active
 func (g *GameStore) CreateNewRoom(GameId string, CreatorId int) error {
 	query := `INSERT INTO GameRooms (id, player_x_id, turn_id, game_state) VALUES (?, ?, ?, 'waiting')`
 	_, err := g.db.Exec(query, GameId, CreatorId, CreatorId)
@@ -23,7 +21,6 @@ func (g *GameStore) CreateNewRoom(GameId string, CreatorId int) error {
 }
 
 func (g *GameStore) JoinRoom(GameId string, OpponentId int) error {
-	// update DB add player_o_id by validating GameId
 	query := `UPDATE GameRooms SET player_o_id = ?, game_state = 'active' WHERE id = ? AND game_state = 'waiting' AND player_o_id IS 0`
 	_, err := g.db.Exec(query, OpponentId, GameId)
 	if err != nil {
@@ -34,7 +31,6 @@ func (g *GameStore) JoinRoom(GameId string, OpponentId int) error {
 }
 
 func (s *GameStore) UpdateMove(gameID string, userID int, newBoard string) error {
-	// We add 'turn_id = ?' to the WHERE clause
 	query := `UPDATE GameRooms
               SET board = ?,
                   turn_id = CASE
@@ -60,7 +56,6 @@ func (s *GameStore) UpdateMove(gameID string, userID int, newBoard string) error
 
 func (s *GameStore) GetGameState(gameID string) (*models.GameRoom, error) {
 	var gameRoom models.GameRoom
-	// The order here MUST match the Scan below exactly
 	query := `SELECT id, player_x_id, player_o_id, turn_id, game_state, winner_id, board 
 	          FROM GameRooms WHERE id = ?`
 
@@ -81,7 +76,6 @@ func (s *GameStore) GetGameState(gameID string) (*models.GameRoom, error) {
 }
 
 func (g *GameStore) SetWinner(gameID string, winnerID int) error {
-	// Update the game state to 'finished' and set the winner_id
 	query := `UPDATE GameRooms SET game_state = 'finished', winner_id = ? WHERE id = ?`
 	_, err := g.db.Exec(query, winnerID, gameID)
 	return err
