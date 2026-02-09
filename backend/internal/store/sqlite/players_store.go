@@ -11,6 +11,10 @@ type PlayerStore struct {
 	db *sql.DB
 }
 
+func NewPlayerStore(db *sql.DB) *PlayerStore {
+	return &PlayerStore{db: db}
+}
+
 // create User
 
 // HashPassword converts a plain text password into a Bcrypt hash.

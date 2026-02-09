@@ -10,6 +10,10 @@ type GameStore struct {
 	db *sql.DB
 }
 
+func NewGameStore(db *sql.DB) *GameStore {
+	return &GameStore{db: db}
+}
+
 // create game room for player_x ,
 // later implement joiin room where we insert palyer_o and update game state to active
 func (g *GameStore) CreateNewRoom(GameId string, CreatorId int) error {
@@ -18,13 +22,14 @@ func (g *GameStore) CreateNewRoom(GameId string, CreatorId int) error {
 	return err
 }
 
-func (g *GameStore) JoinRoom(GameId string, OpponentId int) {
+func (g *GameStore) JoinRoom(GameId string, OpponentId int) error {
 	// update DB add player_o_id by validating GameId
-	query := `UPDATE GameRooms SET player_o_id = ?, game_state = 'active' WHERE id = ? AND game_state = 'waiting' AND player_o_id IS NULL`
+	query := `UPDATE GameRooms SET player_o_id = ?, game_state = 'active' WHERE id = ? AND game_state = 'waiting' AND player_o_id IS 0`
 	_, err := g.db.Exec(query, OpponentId, GameId)
 	if err != nil {
-		fmt.Printf("Error joining room: %v\n", err)
+		return err
 	}
+	return nil
 
 }
 
@@ -43,7 +48,6 @@ func (s *GameStore) UpdateMove(gameID string, userID int, newBoard string) error
 		return fmt.Errorf("failed to update move: %w", err)
 	}
 
-	// ... check RowsAffected() to see if it was actually their turn
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		return fmt.Errorf("failed to check rows affected: %w", err)
