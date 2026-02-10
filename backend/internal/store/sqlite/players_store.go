@@ -32,12 +32,12 @@ func HashPassword(password string) (string, error) {
 // 	return err == nil
 // }
 
-func (p *PlayerStore) CreatePlayer(player models.Player) (int, error) {
+func (p *PlayerStore) CreatePlayer(Username string, Password string) (int, error) {
 
 	query := `INSERT INTO Players (username , password) VALUES (?, ?)`
 
-	hashed_password, err := HashPassword(player.Password)
-	result, err := p.db.Exec(query, player.Username, hashed_password)
+	hashed_password, err := HashPassword(Password)
+	result, err := p.db.Exec(query, Username, hashed_password)
 	if err != nil {
 		return 0, fmt.Errorf("Could not execute the create player query")
 	}

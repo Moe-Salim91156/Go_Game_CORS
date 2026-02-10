@@ -34,6 +34,7 @@ func (h *GameHandler) CreateRoom(w http.ResponseWriter, r *http.Request) {
 	err := h.Gs.GameStore.CreateNewRoom(req.RoomID, req.PlayerID)
 	if err != nil {
 		http.Error(w, "Could not create room : ", http.StatusInternalServerError)
+		return
 	}
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(map[string]string{
@@ -54,6 +55,7 @@ func (h *GameHandler) JoinRoom(w http.ResponseWriter, r *http.Request) {
 	err := h.Gs.GameStore.JoinRoom(req.RoomID, req.OpponentID)
 	if err != nil {
 		http.Error(w, "could not join room", http.StatusInternalServerError)
+		return
 	}
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{
@@ -69,9 +71,11 @@ func (h *GameHandler) MoveHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "invalid request", http.StatusBadRequest)
+		return
 	}
 	if err := h.Gs.ExecuteMove(req.RoomID, req.PlayerID, req.CellIndex); err != nil {
 		http.Error(w, "could not EXECUTE MOVE", http.StatusBadRequest)
+		return
 	}
 	w.WriteHeader(http.StatusAccepted)
 	json.NewEncoder(w).Encode(map[string]string{
@@ -84,10 +88,12 @@ func (h *GameHandler) GameStatus(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "invalid Request", http.StatusBadRequest)
+		return
 	}
 	game, err := h.Gs.GameStore.GetGameByID(req.RoomID)
 	if err != nil {
 		http.Error(w, "could not Fetch Game Status", http.StatusBadRequest)
+		return
 	}
 	w.WriteHeader(http.StatusAccepted)
 	json.NewEncoder(w).Encode(map[string]any{

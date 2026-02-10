@@ -1,0 +1,32 @@
+package handlers
+
+import (
+	"encoding/json"
+	"net/http"
+)
+
+func (h *GameHandler) SignupHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	var req struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+	playerID, err := h.Gs.PlayerStore.CreatePlayer(req.Username, req.Password)
+	if err != nil {
+		http.Error(w, "User already exists or DB error", http.StatusConflict)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]any{
+		"player_id": playerID,
+		"username":  req.Username,
+	})
+}
