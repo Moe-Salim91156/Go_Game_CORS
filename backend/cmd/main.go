@@ -73,44 +73,44 @@ func main() {
 	// fmt.Printf("Game State: %s\n", finalStatus.GameState)
 	// fmt.Printf("Game State: %d\n", finalStatus.Winner_id)
 
-	// --- TEST SCENARIO: BOB WINS ---
-	roomID_BobWins := "BOB_WINS_TEST"
-	gStore.CreateNewRoom(roomID_BobWins, Aliceid)
-	gStore.JoinRoom(roomID_BobWins, bobID)
+	// // --- TEST SCENARIO: BOB WINS ---
+	// roomID_BobWins := "BOB_WINS_TEST"
+	// gStore.CreateNewRoom(roomID_BobWins, Aliceid)
+	// gStore.JoinRoom(roomID_BobWins, bobID)
 
-	fmt.Println("\n--- Starting Bob Win Scenario ---")
-	gService.ExecuteMove(roomID_BobWins, Aliceid, 0) // Alice
-	gService.ExecuteMove(roomID_BobWins, bobID, 1)   // Bob
-	gService.ExecuteMove(roomID_BobWins, Aliceid, 3) // Alice
-	gService.ExecuteMove(roomID_BobWins, bobID, 4)   // Bob
-	gService.ExecuteMove(roomID_BobWins, Aliceid, 2) // Alice
-	gService.ExecuteMove(roomID_BobWins, bobID, 7)   // Bob (Winning Move!)
+	// fmt.Println("\n--- Starting Bob Win Scenario ---")
+	// gService.ExecuteMove(roomID_BobWins, Aliceid, 0) // Alice
+	// gService.ExecuteMove(roomID_BobWins, bobID, 1)   // Bob
+	// gService.ExecuteMove(roomID_BobWins, Aliceid, 3) // Alice
+	// gService.ExecuteMove(roomID_BobWins, bobID, 4)   // Bob
+	// gService.ExecuteMove(roomID_BobWins, Aliceid, 2) // Alice
+	// gService.ExecuteMove(roomID_BobWins, bobID, 7)   // Bob (Winning Move!)
 
-	finalStatusBob, _ := gStore.GetGameState(roomID_BobWins)
-	fmt.Printf("Final Board: %s\n", finalStatusBob.Board)
-	fmt.Printf("Game State: %s\n", finalStatusBob.GameState)
-	fmt.Printf("Winner ID: %d (Should be %d)\n", finalStatusBob.Winner_id, bobID)
+	// finalStatusBob, _ := gStore.GetGameState(roomID_BobWins)
+	// fmt.Printf("Final Board: %s\n", finalStatusBob.Board)
+	// fmt.Printf("Game State: %s\n", finalStatusBob.GameState)
+	// fmt.Printf("Winner ID: %d (Should be %d)\n", finalStatusBob.Winner_id, bobID)
 	// put a draw scenarior and print output to test
 
-	// 	// --- TEST SCENARIO: DRAW ---
-	// 	roomID_Draw := "DRAW_TEST"
-	// 	gStore.CreateNewRoom(roomID_Draw, Aliceid)
-	// 	gStore.JoinRoom(roomID_Draw, bobID)
+	// --- TEST SCENARIO: DRAW ---
+	roomID_Draw := "DRAW_TEST"
+	gStore.CreateNewRoom(roomID_Draw, Aliceid)
+	gStore.JoinRoom(roomID_Draw, bobID)
 
-	// 	fmt.Println("\n--- Starting Draw Scenario ---")
-	// 	// Creating a "Cat's Game" pattern
-	// 	moves := []int{0, 1, 2, 4, 3, 5, 7, 6, 8}
-	// 	for i, cell := range moves {
-	// 		pID := Aliceid
-	// 		if i%2 != 0 {
-	// 			pID = bobID
-	// 		}
-	// 		gService.ExecuteMove(roomID_Draw, pID, cell)
-	// 	}
+	fmt.Println("\n--- Starting Draw Scenario ---")
+	// Creating a "Cat's Game" pattern
+	moves := []int{0, 1, 2, 4, 3, 5, 7, 6, 8}
+	for i, cell := range moves {
+		pID := Aliceid
+		if i%2 != 0 {
+			pID = bobID
+		}
+		gService.ExecuteMove(roomID_Draw, pID, cell)
+	}
 
-	// 	finalStatusDraw, _ := gStore.GetGameState(roomID_Draw)
-	// 	fmt.Printf("Final Board: %s\n", finalStatusDraw.Board)
-	// 	fmt.Printf("Game State: %s\n", finalStatusDraw.GameState)
-	// 	fmt.Printf("Winner ID: %d (Should be 0/null)\n", finalStatusDraw.Winner_id)
+	finalStatusDraw, _ := gStore.GetGameState(roomID_Draw)
+	fmt.Printf("Final Board: %s\n", finalStatusDraw.Board)
+	fmt.Printf("Game State: %s\n", finalStatusDraw.GameState)
+	fmt.Printf("Winner ID: %d (Should be 0/null)\n", finalStatusDraw.Winner_id)
 
 }

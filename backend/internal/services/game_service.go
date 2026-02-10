@@ -46,7 +46,6 @@ func (g *GameService) ExecuteMove(gameID string, PlayerID int, CellIndex int) er
 	// win ? draw ? continue ?
 
 	winnerFlag := g.CheckWinner(CookedBoard)
-	fmt.Printf("DEBUG: WinnerFlag found: '%s'\n", winnerFlag) // Add this!
 	var Winner_id int
 	tempState := "active"
 	if winnerFlag != "" {
