@@ -47,7 +47,7 @@ func (g *GameService) ExecuteMove(gameID string, PlayerID int, CellIndex int) er
 
 	winnerFlag := g.CheckWinner(CookedBoard)
 	var Winner_id int
-	tempState := "active"
+	tempState := game.GameState
 	if winnerFlag != "" {
 		tempState = "finished"
 		if winnerFlag == "X" {
