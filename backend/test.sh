@@ -1,17 +1,36 @@
 #!/bin/bash
 HOST="http://localhost:8080"
 
-echo "1. Creating Room..."
-curl -X POST $HOST/create -d '{"room_id": "SUI_1", "player_id": 1}'
+echo "🚀 SHAZAM! Starting Multiplayer Test..."
 
-echo -e "\n2. Joining Room..."
-curl -X POST $HOST/join -d '{"room_id": "SUI_1", "opponent_id": 2}'
+# 1. Signup Alice (Player X)
+echo "Registering Alice..."
+ALICE_RESP=$(curl -s -X POST $HOST/signup \
+    -H "Content-Type: application/json" \
+    -d '{"username": "alice_queen", "password": "safe_password123"}')
+ALICE_ID=$(echo $ALICE_RESP | jq '.player_id')
 
-echo -e "\n3. Alice moves (Index 0)..."
-curl -X POST $HOST/move -d '{"room_id": "SUI_1", "player_id": 1, "cell_index": 0}'
+# 2. Alice Creates a Room
+echo "Alice creating room SUI_777..."
+curl -s -X POST $HOST/create \
+    -H "Content-Type: application/json" \
+    -d "{\"room_id\": \"SUI_777\", \"player_id\": $ALICE_ID}" > /dev/null
 
-echo -e "\n4. Bob moves (Index 4)..."
-curl -X POST $HOST/move -d '{"room_id": "SUI_1", "player_id": 2, "cell_index": 4}'
+# 3. Signup Bob (Player O)
+echo "Registering Bob..."
+BOB_RESP=$(curl -s -X POST $HOST/signup \
+    -H "Content-Type: application/json" \
+    -d '{"username": "bob_builder", "password": "password456"}')
+BOB_ID=$(echo $BOB_RESP | jq '.player_id')
 
-echo -e "\n5. Checking Status..."
-curl -X POST $HOST/status -d '{"room_id": "SUI_1"}'
+# 4. Bob Joins Alice's Room
+echo "Bob joining SUI_777..."
+curl -s -X POST $HOST/join \
+    -H "Content-Type: application/json" \
+    -d "{\"room_id\": \"SUI_777\", \"opponent_id\": $BOB_ID}" > /dev/null
+
+# 5. Check Live Status
+echo -e "\n📊 LIVE GAME STATUS (SUI_777):"
+curl -s -X POST $HOST/status \
+    -H "Content-Type: application/json" \
+    -d '{"room_id": "SUI_777"}' | jq .
