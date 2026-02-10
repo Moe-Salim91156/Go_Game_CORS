@@ -14,6 +14,20 @@ func NewGameStore(db *sql.DB) *GameStore {
 	return &GameStore{db: db}
 }
 
+func (s *GameStore) GetGameByID(id string) (*models.GameRoom, error) {
+	var g models.GameRoom
+
+	query := `SELECT id, player_x_id, player_o_id, board, turn_id, game_state FROM gameRooms WHERE id = ?`
+
+	row := s.db.QueryRow(query, id)
+
+	err := row.Scan(&g.ID, &g.Player_x_id, &g.Player_o_id, &g.Board, &g.Turn_id, &g.GameState)
+	if err != nil {
+		return nil, err
+	}
+	return &g, nil
+}
+
 func (g *GameStore) CreateNewRoom(GameId string, CreatorId int) error {
 	query := `INSERT INTO GameRooms (id, player_x_id, turn_id, game_state) VALUES (?, ?, ?, 'waiting')`
 	_, err := g.db.Exec(query, GameId, CreatorId, CreatorId)
@@ -52,6 +66,13 @@ func (s *GameStore) UpdateMove(gameID string, userID int, newBoard string) error
 		return fmt.Errorf("not your turn or game not active")
 	}
 	return nil
+}
+
+// with board
+func (g *GameStore) UpdateGame(gameID string, newState string, board string, winnerID int) error {
+	query := `UPDATE GameRooms SET game_state = ?, board = ?, winner_id = ? WHERE id = ?`
+	_, err := g.db.Exec(query, newState, board, winnerID, gameID)
+	return err
 }
 
 func (s *GameStore) GetGameState(gameID string) (*models.GameRoom, error) {
