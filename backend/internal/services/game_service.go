@@ -46,6 +46,7 @@ func (g *GameService) ExecuteMove(gameID string, PlayerID int, CellIndex int) er
 	// win ? draw ? continue ?
 
 	winnerFlag := g.CheckWinner(CookedBoard)
+	fmt.Printf("DEBUG: WinnerFlag found: '%s'\n", winnerFlag) // Add this!
 	var Winner_id int
 	tempState := "active"
 	if winnerFlag != "" {
@@ -91,10 +92,7 @@ func (g *GameService) CheckWinner(board [9]string) string {
 	for _, line := range winLines {
 		a, b, c := line[0], line[1], line[2]
 
-		if board[a] == "" {
-			break
-		}
-		if board[a] == board[b] && board[b] == board[c] {
+		if board[a] != "-" && board[a] == board[b] && board[b] == board[c] {
 			return board[a] // this here should return the SIMBOL (x or o)
 			// the winner.
 		}
