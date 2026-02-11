@@ -3,6 +3,8 @@ package handlers
 import (
 	"CorsGame/internal/services"
 	"encoding/json"
+	"fmt"
+	"github.com/gorilla/websocket"
 	"net/http"
 )
 
@@ -18,6 +20,45 @@ func NewGameHandler(gs services.GameService) *GameHandler {
 	return &GameHandler{
 		Gs: gs,
 	}
+}
+
+var Upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		origin := r.Header.Get("Origin")
+		return origin == "http:://localhost:3000"
+		// this should be the middleware for CORS / react
+		// the websocket way of doin this shit
+	},
+}
+
+func (h *GameHandler) HandleWs(w http.ResponseWriter, r *http.Request) {
+	RoomID := r.URL.Query().Get("room")
+
+	conn, err := Upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		return
+	}
+	// register the connection here ?
+	GameHub.RegisterIntoRooms(RoomID, conn)
+	defer GameHub.Unregister(RoomID, conn)
+
+	for {
+		var moveData struct {
+			RoomID    string `json:"room_id"`
+			PlayerID  int    `json:"player_id"`
+			CellIndex int    `json:"Cell_index"`
+		}
+		err := h.Gs.ExecuteMove(moveData.RoomID, moveData.PlayerID, moveData.CellIndex)
+		if err != nil {
+			return
+		}
+		Game, _ := h.Gs.GameStore.GetGameState(moveData.RoomID)
+		GameHub.BroadCast(RoomID, Game.GameState)
+
+	}
+
 }
 
 // URL/POST creat room
