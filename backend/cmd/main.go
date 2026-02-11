@@ -47,6 +47,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/signup", gHandler.SignupHandler)
+	mux.HandleFunc("/ws", gHandler.HandleWs)
 	mux.HandleFunc("/create", gHandler.CreateRoom)
 	mux.HandleFunc("/join", gHandler.JoinRoom)
 	mux.HandleFunc("/move", gHandler.MoveHandler)

@@ -42,7 +42,7 @@ func (h *Hub) Unregister(roomID string, conn *websocket.Conn) {
 }
 
 // THE SHOUTING , update on every side
-func (h *Hub) BroadCast(roomID string, data interface{}) {
+func (h *Hub) BroadCast(roomID string, data any) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
