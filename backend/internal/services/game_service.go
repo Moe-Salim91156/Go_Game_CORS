@@ -22,6 +22,10 @@ func NewGameService(gs store.GameStore, ps store.PlayerStore) *GameService {
 // use the store functions to make the game logic backend-wired
 
 func (g *GameService) ExecuteMove(gameID string, PlayerID int, CellIndex int) error {
+
+	if CellIndex < 0 || CellIndex > 8 {
+		return fmt.Errorf("cell index %d is out of bounds", CellIndex)
+	}
 	game, err := g.GameStore.GetGameByID(gameID)
 	if err != nil {
 		return err
@@ -60,11 +64,9 @@ func (g *GameService) ExecuteMove(gameID string, PlayerID int, CellIndex int) er
 	}
 
 	board := g.UnCookBoard(CookedBoard)
-	if tempState == "active" {
-		err := g.GameStore.UpdateMove(gameID, PlayerID, board)
-		if err != nil {
-			return fmt.Errorf("failed to update Move %v", err)
-		}
+	err = g.GameStore.UpdateMove(gameID, PlayerID, board)
+	if err != nil {
+		return fmt.Errorf("failed to update Move %v", err)
 	}
 	return g.GameStore.UpdateGame(gameID, tempState, board, Winner_id)
 

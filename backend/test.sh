@@ -14,7 +14,7 @@ ALICE_ID=$(echo $ALICE_RESP | jq '.player_id')
 echo "Alice creating room SUI_777..."
 curl -s -X POST $HOST/create \
     -H "Content-Type: application/json" \
-    -d "{\"room_id\": \"SUI_777\", \"player_id\": $ALICE_ID}" > /dev/null
+    -d "{\"room_id\": \"SUI_333\", \"player_id\": $ALICE_ID}" > /dev/null
 
 # 3. Signup Bob (Player O)
 echo "Registering Bob..."

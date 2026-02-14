@@ -3,6 +3,8 @@ package handlers
 import (
 	"CorsGame/internal/services"
 	"encoding/json"
+	"github.com/gorilla/websocket"
+	"log"
 	"net/http"
 )
 
@@ -18,6 +20,52 @@ func NewGameHandler(gs services.GameService) *GameHandler {
 	return &GameHandler{
 		Gs: gs,
 	}
+}
+
+var Upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		origin := r.Header.Get("Origin")
+		return origin == "http://localhost:3000" || origin == "http://localhost:3000/"
+		// slash / stupid error
+	}}
+
+func (h *GameHandler) HandleWs(w http.ResponseWriter, r *http.Request) {
+	RoomID := r.URL.Query().Get("room")
+
+	conn, err := Upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		return
+	}
+	// register the connection here ?
+	GameHub.RegisterIntoRooms(RoomID, conn)
+	defer GameHub.Unregister(RoomID, conn)
+
+	for {
+		var moveData struct {
+			RoomID    string `json:"room_id"`
+			PlayerID  int    `json:"player_id"`
+			CellIndex int    `json:"cell_index"`
+		}
+
+		if err := conn.ReadJSON(&moveData); err != nil {
+			log.Println("Client disconnected:", err)
+			return
+		}
+
+		// DEBUG LINE FOR my Soul sanity
+		log.Printf("Received Move: Room=%s, Player=%d, Cell=%d", moveData.RoomID, moveData.PlayerID, moveData.CellIndex)
+
+		err := h.Gs.ExecuteMove(moveData.RoomID, moveData.PlayerID, moveData.CellIndex)
+		if err != nil {
+			log.Println("Move Error ", err)
+			continue
+		}
+		Game, _ := h.Gs.GameStore.GetGameState(moveData.RoomID)
+		GameHub.BroadCast(moveData.RoomID, Game.GameState)
+	}
+
 }
 
 // URL/POST creat room
