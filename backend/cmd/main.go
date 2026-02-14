@@ -9,23 +9,6 @@ import (
 	"net/http"
 )
 
-func CORSMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Allow the React frontend origin
-		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
-		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Authorization")
-
-		// Handle preflight "OPTIONS" requests
-		if r.Method == "OPTIONS" {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-
-		next.ServeHTTP(w, r)
-	})
-}
-
 func main() {
 	// 1. Initialize DB
 	db, err := store.OpenConnection()
@@ -55,6 +38,6 @@ func main() {
 
 	// 4. Wrap with CORS and Start
 	fmt.Println("🚀 SUI! Game Server running on http://localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", CORSMiddleware(mux)))
+	log.Fatal(http.ListenAndServe(":8080", mux))
 
 }

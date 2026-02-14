@@ -27,7 +27,7 @@ var Upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 	CheckOrigin: func(r *http.Request) bool {
 		origin := r.Header.Get("Origin")
-		return origin == "http://localhost:3000" || origin == "http://localhost:3000/"
+		return origin == "http://localhost:5173" || origin == "http://localhost:5173/"
 		// slash / stupid error
 	}}
 
@@ -40,6 +40,10 @@ func (h *GameHandler) HandleWs(w http.ResponseWriter, r *http.Request) {
 	}
 	// register the connection here ?
 	GameHub.RegisterIntoRooms(RoomID, conn)
+	game, err := h.Gs.GameStore.GetGameState(RoomID)
+	if err == nil {
+		conn.WriteJSON(game)
+	}
 	defer GameHub.Unregister(RoomID, conn)
 
 	for {
@@ -63,7 +67,7 @@ func (h *GameHandler) HandleWs(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 		Game, _ := h.Gs.GameStore.GetGameState(moveData.RoomID)
-		GameHub.BroadCast(moveData.RoomID, Game.GameState)
+		GameHub.BroadCast(moveData.RoomID, Game)
 	}
 
 }
