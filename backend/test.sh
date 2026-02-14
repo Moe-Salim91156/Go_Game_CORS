@@ -27,10 +27,10 @@ BOB_ID=$(echo $BOB_RESP | jq '.player_id')
 echo "Bob joining SUI_777..."
 curl -s -X POST $HOST/join \
     -H "Content-Type: application/json" \
-    -d "{\"room_id\": \"SUI_777\", \"opponent_id\": $BOB_ID}" > /dev/null
+    -d "{\"room_id\": \"SUI_333\", \"opponent_id\": $BOB_ID}" > /dev/null
 
 # 5. Check Live Status
 echo -e "\n📊 LIVE GAME STATUS (SUI_777):"
 curl -s -X POST $HOST/status \
     -H "Content-Type: application/json" \
-    -d '{"room_id": "SUI_777"}' | jq .
+    -d '{"room_id": "SUI_333"}' | jq .
