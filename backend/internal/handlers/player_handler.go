@@ -6,7 +6,6 @@ import (
 )
 
 func (h *GameHandler) SignupHandler(w http.ResponseWriter, r *http.Request) {
-
 	var req struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
@@ -21,10 +20,11 @@ func (h *GameHandler) SignupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json") // Must be FIRST
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]any{
-		"player_id": playerID,
-		"username":  req.Username,
+	// FIXED: No more map[string]any
+	json.NewEncoder(w).Encode(SignupResponse{
+		PlayerID: playerID,
+		Username: req.Username,
 	})
 }

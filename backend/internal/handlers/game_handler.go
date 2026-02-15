@@ -13,10 +13,6 @@ type GameHandler struct {
 	GameHub  *Hub
 }
 
-// handlers for /POST create room
-// handlers for /POST rooms
-// handlers for /MOVE
-// join room , create room , j
 func NewGameHandler(gs services.GameService) *GameHandler {
 	return &GameHandler{
 		gservice: gs,
@@ -28,11 +24,9 @@ var Upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 	CheckOrigin: func(r *http.Request) bool {
-		// origin := r.Header.Get("Origin")
-		// return origin == "http://localhost:5173" || origin == "http://localhost:5173/"
 		return true
-		// slash / stupid error
-	}}
+	},
+}
 
 func (h *GameHandler) HandleWs(w http.ResponseWriter, r *http.Request) {
 	RoomID := r.URL.Query().Get("room")
@@ -71,11 +65,9 @@ func (h *GameHandler) HandleWs(w http.ResponseWriter, r *http.Request) {
 		Game, _ := h.gservice.GetGameState(moveData.RoomID)
 		h.GameHub.BroadCast(moveData.RoomID, Game)
 	}
-
 }
 
-// URL/POST creat room
-// create room CORS
+// FIXED: Using struct instead of map
 func (h *GameHandler) CreateRoom(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		RoomID   string `json:"room_id"`
@@ -87,41 +79,44 @@ func (h *GameHandler) CreateRoom(w http.ResponseWriter, r *http.Request) {
 	}
 	err := h.gservice.CreateRoom(req.RoomID, req.PlayerID)
 	if err != nil {
-		http.Error(w, "Could not create room : ", http.StatusInternalServerError)
+		http.Error(w, "Could not create room", http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]string{
-		"message": "Room created succesfully",
-		"room_id": req.RoomID,
+	// FIXED: No more map[string]string
+	json.NewEncoder(w).Encode(CreateRoomResponse{
+		Message: "Room created succesfully",
+		RoomID:  req.RoomID,
 	})
 }
 
+// FIXED: No opponent_id in request body anymore
 func (h *GameHandler) JoinRoom(w http.ResponseWriter, r *http.Request) {
 	var req struct {
-		RoomID     string `json:"room_id"`
-		OpponentID int    `json:"Opponent_id"`
+		RoomID   string `json:"room_id"`
+		PlayerID int    `json:"player_id"` // FIXED: Changed from Opponent_id
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "invalid request", http.StatusBadRequest)
 		return
 	}
-	err := h.gservice.JoinRoom(req.RoomID, req.OpponentID)
+	err := h.gservice.JoinRoom(req.RoomID, req.PlayerID)
 	if err != nil {
 		http.Error(w, "could not join room", http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{
-		"message": "Joining Room Succesfull",
+	// FIXED: No more map[string]string
+	json.NewEncoder(w).Encode(JoinRoomResponse{
+		Message: "Joining Room Succesfull",
 	})
 }
 
 func (h *GameHandler) MoveHandler(w http.ResponseWriter, r *http.Request) {
 	var req struct {
-		RoomID    string `json:"Room_id"`
-		PlayerID  int    `json:"Player_id"`
-		CellIndex int    `json:"Cell_index"`
+		RoomID    string `json:"room_id"`
+		PlayerID  int    `json:"player_id"`
+		CellIndex int    `json:"cell_index"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "invalid request", http.StatusBadRequest)
@@ -132,13 +127,15 @@ func (h *GameHandler) MoveHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusAccepted)
-	json.NewEncoder(w).Encode(map[string]string{
-		"message": "Move Accepted",
+	// FIXED: No more map[string]string
+	json.NewEncoder(w).Encode(MoveResponse{
+		Message: "Move Accepted",
 	})
 }
+
 func (h *GameHandler) GameStatus(w http.ResponseWriter, r *http.Request) {
 	var req struct {
-		RoomID string `json:"Room_id"`
+		RoomID string `json:"room_id"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "invalid Request", http.StatusBadRequest)
@@ -150,12 +147,13 @@ func (h *GameHandler) GameStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusAccepted)
-	json.NewEncoder(w).Encode(map[string]any{
-		"room_id":     req.RoomID,
-		"game_status": game.GameState,
-		"winner_id":   game.WinnerID,
-		"player_x_id": game.PlayerXID,
-		"player_o_id": game.PlayerOID,
-		"board":       game.Board,
+	// FIXED: No more map[string]any
+	json.NewEncoder(w).Encode(GameStatusResponse{
+		RoomID:    req.RoomID,
+		GameState: game.GameState,
+		WinnerID:  game.WinnerID,
+		PlayerXID: game.PlayerXID,
+		PlayerOID: game.PlayerOID,
+		Board:     game.Board,
 	})
 }
