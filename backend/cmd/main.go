@@ -25,15 +25,15 @@ func main() {
 	// 3. Initialize Stores
 	pStore := store.NewPlayerStore(db)
 	gStore := store.NewGameStore(db)
-	gService := services.NewGameService(*gStore, *pStore)
+	gService := services.NewGameService(gStore, pStore)
 	gHandler := handlers.NewGameHandler(*gService)
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/signup", gHandler.SignupHandler)
+	mux.HandleFunc("/game/signup", gHandler.SignupHandler)
 	mux.HandleFunc("/ws", gHandler.HandleWs)
-	mux.HandleFunc("/create", gHandler.CreateRoom)
-	mux.HandleFunc("/join", gHandler.JoinRoom)
-	mux.HandleFunc("/move", gHandler.MoveHandler)
+	mux.HandleFunc("/game/create", gHandler.CreateRoom)
+	mux.HandleFunc("/game/join", gHandler.JoinRoom)
+	mux.HandleFunc("/game/move", gHandler.MoveHandler)
 	mux.HandleFunc("/status", gHandler.GameStatus)
 
 	// 4. Wrap with CORS and Start

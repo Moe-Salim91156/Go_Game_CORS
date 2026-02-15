@@ -9,7 +9,8 @@ import (
 )
 
 type GameHandler struct {
-	Gs services.GameService
+	gservice services.GameService
+	GameHub  *Hub
 }
 
 // handlers for /POST create room
@@ -18,7 +19,8 @@ type GameHandler struct {
 // join room , create room , j
 func NewGameHandler(gs services.GameService) *GameHandler {
 	return &GameHandler{
-		Gs: gs,
+		gservice: gs,
+		GameHub:  GameHub,
 	}
 }
 
@@ -39,13 +41,12 @@ func (h *GameHandler) HandleWs(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-	// register the connection here ?
-	GameHub.RegisterIntoRooms(RoomID, conn)
-	game, err := h.Gs.GameStore.GetGameState(RoomID)
+	h.GameHub.RegisterIntoRooms(RoomID, conn)
+	game, err := h.gservice.GameStore.GetGameState(RoomID)
 	if err == nil {
 		conn.WriteJSON(game)
 	}
-	defer GameHub.Unregister(RoomID, conn)
+	defer h.GameHub.Unregister(RoomID, conn)
 	defer conn.Close()
 
 	for {
@@ -60,16 +61,15 @@ func (h *GameHandler) HandleWs(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// DEBUG LINE FOR my Soul sanity
 		log.Printf("Received Move: Room=%s, Player=%d, Cell=%d", moveData.RoomID, moveData.PlayerID, moveData.CellIndex)
 
-		err := h.Gs.ExecuteMove(moveData.RoomID, moveData.PlayerID, moveData.CellIndex)
+		err := h.gservice.ExecuteMove(moveData.RoomID, moveData.PlayerID, moveData.CellIndex)
 		if err != nil {
 			log.Println("Move Error ", err)
 			continue
 		}
-		Game, _ := h.Gs.GameStore.GetGameState(moveData.RoomID)
-		GameHub.BroadCast(moveData.RoomID, Game)
+		Game, _ := h.gservice.GetGameState(moveData.RoomID)
+		h.GameHub.BroadCast(moveData.RoomID, Game)
 	}
 
 }
@@ -85,7 +85,7 @@ func (h *GameHandler) CreateRoom(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid request", http.StatusBadRequest)
 		return
 	}
-	err := h.Gs.GameStore.CreateNewRoom(req.RoomID, req.PlayerID)
+	err := h.gservice.CreateRoom(req.RoomID, req.PlayerID)
 	if err != nil {
 		http.Error(w, "Could not create room : ", http.StatusInternalServerError)
 		return
@@ -106,7 +106,7 @@ func (h *GameHandler) JoinRoom(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid request", http.StatusBadRequest)
 		return
 	}
-	err := h.Gs.GameStore.JoinRoom(req.RoomID, req.OpponentID)
+	err := h.gservice.JoinRoom(req.RoomID, req.OpponentID)
 	if err != nil {
 		http.Error(w, "could not join room", http.StatusInternalServerError)
 		return
@@ -127,7 +127,7 @@ func (h *GameHandler) MoveHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid request", http.StatusBadRequest)
 		return
 	}
-	if err := h.Gs.ExecuteMove(req.RoomID, req.PlayerID, req.CellIndex); err != nil {
+	if err := h.gservice.ExecuteMove(req.RoomID, req.PlayerID, req.CellIndex); err != nil {
 		http.Error(w, "could not EXECUTE MOVE", http.StatusBadRequest)
 		return
 	}
@@ -144,18 +144,18 @@ func (h *GameHandler) GameStatus(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid Request", http.StatusBadRequest)
 		return
 	}
-	game, err := h.Gs.GameStore.GetGameByID(req.RoomID)
+	game, err := h.gservice.GetGameByID(req.RoomID)
 	if err != nil {
 		http.Error(w, "could not Fetch Game Status", http.StatusBadRequest)
 		return
 	}
 	w.WriteHeader(http.StatusAccepted)
 	json.NewEncoder(w).Encode(map[string]any{
-		"RoomId":      req.RoomID,
-		"Game_Status": game.GameState,
-		"Winner_id":   game.Winner_id,
-		"Player_x_id": game.Player_x_id,
-		"Player_o_id": game.Player_o_id,
+		"room_id":     req.RoomID,
+		"game_status": game.GameState,
+		"winner_id":   game.WinnerID,
+		"player_x_id": game.PlayerXID,
+		"player_o_id": game.PlayerOID,
 		"board":       game.Board,
 	})
 }
