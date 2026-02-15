@@ -8,31 +8,31 @@ import (
 )
 
 type GameService struct {
-	GameStore   *store.GameStore
-	PlayerStore *store.PlayerStore
+	gameStore   *store.GameStore
+	playerStore *store.PlayerStore
 }
 
 func NewGameService(gs *store.GameStore, ps *store.PlayerStore) *GameService {
 	return &GameService{
-		GameStore:   gs,
-		PlayerStore: ps,
+		gameStore:   gs,
+		playerStore: ps,
 	}
 }
 
 func (g *GameService) GetGameState(gameID string) (*models.GameRoom, error) {
-	return g.GameStore.GetGameState(gameID)
+	return g.gameStore.GetGameState(gameID)
 }
 
 func (g *GameService) GetGameByID(gameID string) (*models.GameRoom, error) {
-	return g.GameStore.GetGameByID(gameID)
+	return g.gameStore.GetGameByID(gameID)
 }
 
 func (g *GameService) CreateRoom(roomID string, creatorID int) error {
-	return g.GameStore.CreateNewRoom(roomID, creatorID)
+	return g.gameStore.CreateNewRoom(roomID, creatorID)
 }
 
 func (g *GameService) JoinRoom(roomID string, playerID int) error {
-	return g.GameStore.JoinRoom(roomID, playerID)
+	return g.gameStore.JoinRoom(roomID, playerID)
 }
 
 func (g *GameService) CreatePlayer(username, password string) (int, error) {
@@ -41,14 +41,14 @@ func (g *GameService) CreatePlayer(username, password string) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	return g.PlayerStore.CreatePlayer(username, hashed)
+	return g.playerStore.CreatePlayer(username, hashed)
 }
 
 func (g *GameService) ExecuteMove(gameID string, PlayerID int, CellIndex int) error {
 	if CellIndex < 0 || CellIndex > 8 {
 		return fmt.Errorf("cell index %d is out of bounds", CellIndex)
 	}
-	game, err := g.GameStore.GetGameByID(gameID)
+	game, err := g.gameStore.GetGameByID(gameID)
 	if err != nil {
 		return err
 	}
@@ -84,11 +84,11 @@ func (g *GameService) ExecuteMove(gameID string, PlayerID int, CellIndex int) er
 	}
 
 	board := g.UnCookBoard(CookedBoard)
-	err = g.GameStore.UpdateMove(gameID, PlayerID, board)
+	err = g.gameStore.UpdateMove(gameID, PlayerID, board)
 	if err != nil {
 		return fmt.Errorf("failed to update Move %v", err)
 	}
-	return g.GameStore.UpdateGame(gameID, tempState, board, WinnerID)
+	return g.gameStore.UpdateGame(gameID, tempState, board, WinnerID)
 }
 
 func (g *GameService) CheckDraw(board [9]string) bool {
