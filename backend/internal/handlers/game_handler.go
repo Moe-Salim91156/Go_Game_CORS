@@ -42,7 +42,7 @@ func (h *GameHandler) HandleWs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	h.GameHub.RegisterIntoRooms(RoomID, conn)
-	game, err := h.gservice.GameStore.GetGameState(RoomID)
+	game, err := h.gservice.GetGameState(RoomID)
 	if err == nil {
 		conn.WriteJSON(game)
 	}

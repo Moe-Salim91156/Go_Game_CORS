@@ -15,7 +15,7 @@ func (h *GameHandler) SignupHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
-	playerID, err := h.gservice.PlayerStore.CreatePlayer(req.Username, req.Password)
+	playerID, err := h.gservice.CreatePlayer(req.Username, req.Password)
 	if err != nil {
 		http.Error(w, "User already exists or DB error", http.StatusConflict)
 		return
