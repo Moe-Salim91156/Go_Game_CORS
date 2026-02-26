@@ -1,0 +1,22 @@
+{
+  "name": "go_game_cors",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Moe-Salim91156/Go_Game_CORS.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Moe-Salim91156/Go_Game_CORS/issues"
+  },
+  "homepage": "https://github.com/Moe-Salim91156/Go_Game_CORS#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@types/node": "^25.3.0"
+  }
+}

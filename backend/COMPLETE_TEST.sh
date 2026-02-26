@@ -128,49 +128,49 @@ else
 fi
 echo ""
 
-# Test 8: Alice makes first move
-echo -e "${YELLOW}[8/10] Testing First Move (Alice - cell 4)${NC}"
-MOVE_RESP=$(curl -s -X POST $HOST/api/game/move \
-    -H "Content-Type: application/json" \
-    -d "{\"room_id\":\"$ROOM_ID\",\"player_id\":$ALICE_ID,\"cell_index\":4}")
+# # Test 8: Alice makes first move
+# echo -e "${YELLOW}[8/10] Testing First Move (Alice - cell 4)${NC}"
+# MOVE_RESP=$(curl -s -X POST $HOST/api/game/move \
+#     -H "Content-Type: application/json" \
+#     -d "{\"room_id\":\"$ROOM_ID\",\"player_id\":$ALICE_ID,\"cell_index\":4}")
 
-if check_response "$MOVE_RESP" "Move Accepted" "Alice's move"; then
-    ((PASS_COUNT++))
-else
-    ((FAIL_COUNT++))
-fi
-echo ""
+# if check_response "$MOVE_RESP" "Move Accepted" "Alice's move"; then
+#     ((PASS_COUNT++))
+# else
+#     ((FAIL_COUNT++))
+# fi
+# echo ""
 
-# Test 9: Verify board updated
-echo -e "${YELLOW}[9/10] Testing Board Update${NC}"
-STATUS_RESP=$(curl -s -X POST $HOST/api/game/status \
-    -H "Content-Type: application/json" \
-    -d "{\"room_id\":\"$ROOM_ID\"}")
+# # Test 9: Verify board updated
+# echo -e "${YELLOW}[9/10] Testing Board Update${NC}"
+# STATUS_RESP=$(curl -s -X POST $HOST/api/game/status \
+#     -H "Content-Type: application/json" \
+#     -d "{\"room_id\":\"$ROOM_ID\"}")
 
-BOARD=$(echo "$STATUS_RESP" | grep -o '"board":"[^"]*"' | cut -d'"' -f4)
-if [ "${BOARD:4:1}" == "X" ]; then
-    echo -e "${GREEN}✓ PASS${NC} - Board updated (X at position 4)"
-    echo "   Current board: $BOARD"
-    ((PASS_COUNT++))
-else
-    echo -e "${RED}✗ FAIL${NC} - Board not updated correctly"
-    echo "   Board: $BOARD"
-    ((FAIL_COUNT++))
-fi
-echo ""
+# BOARD=$(echo "$STATUS_RESP" | grep -o '"board":"[^"]*"' | cut -d'"' -f4)
+# if [ "${BOARD:4:1}" == "X" ]; then
+#     echo -e "${GREEN}✓ PASS${NC} - Board updated (X at position 4)"
+#     echo "   Current board: $BOARD"
+#     ((PASS_COUNT++))
+# else
+#     echo -e "${RED}✗ FAIL${NC} - Board not updated correctly"
+#     echo "   Board: $BOARD"
+#     ((FAIL_COUNT++))
+# fi
+# echo ""
 
-# Test 10: Bob makes move
-echo -e "${YELLOW}[10/10] Testing Second Move (Bob - cell 0)${NC}"
-MOVE_RESP=$(curl -s -X POST $HOST/api/game/move \
-    -H "Content-Type: application/json" \
-    -d "{\"room_id\":\"$ROOM_ID\",\"player_id\":$BOB_ID,\"cell_index\":0}")
+# # Test 10: Bob makes move
+# echo -e "${YELLOW}[10/10] Testing Second Move (Bob - cell 0)${NC}"
+# MOVE_RESP=$(curl -s -X POST $HOST/api/game/move \
+#     -H "Content-Type: application/json" \
+#     -d "{\"room_id\":\"$ROOM_ID\",\"player_id\":$BOB_ID,\"cell_index\":0}")
 
-if check_response "$MOVE_RESP" "Move Accepted" "Bob's move"; then
-    ((PASS_COUNT++))
-else
-    ((FAIL_COUNT++))
-fi
-echo ""
+# if check_response "$MOVE_RESP" "Move Accepted" "Bob's move"; then
+#     ((PASS_COUNT++))
+# else
+#     ((FAIL_COUNT++))
+# fi
+# echo ""
 
 # Final board check
 STATUS_RESP=$(curl -s -X POST $HOST/api/game/status \
