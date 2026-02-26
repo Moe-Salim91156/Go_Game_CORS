@@ -30,17 +30,20 @@ func main() {
 	gHandler := handlers.NewGameHandler(*gService)
 
 	mux := http.NewServeMux()
-	
+
 	// FIXED: Grouped routes
 	// Auth routes
 	mux.HandleFunc("/api/auth/signup", gHandler.SignupHandler)
-	
+
 	// Game routes
 	mux.HandleFunc("/api/game/create", gHandler.CreateRoom)
 	mux.HandleFunc("/api/game/join", gHandler.JoinRoom)
 	mux.HandleFunc("/api/game/move", gHandler.MoveHandler)
 	mux.HandleFunc("/api/game/status", gHandler.GameStatus)
-	
+	mux.HandleFunc("/api/health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("ok"))
+	})
 	// WebSocket
 	mux.HandleFunc("/ws", gHandler.HandleWs)
 

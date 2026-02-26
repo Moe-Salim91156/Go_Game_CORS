@@ -89,12 +89,10 @@ func (h *GameHandler) CreateRoom(w http.ResponseWriter, r *http.Request) {
 		RoomID:  req.RoomID,
 	})
 }
-
-// FIXED: No opponent_id in request body anymore
 func (h *GameHandler) JoinRoom(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		RoomID   string `json:"room_id"`
-		PlayerID int    `json:"player_id"` // FIXED: Changed from Opponent_id
+		PlayerID int    `json:"player_id"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "invalid request", http.StatusBadRequest)
@@ -105,13 +103,19 @@ func (h *GameHandler) JoinRoom(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "could not join room", http.StatusInternalServerError)
 		return
 	}
+
+	// Broadcast updated state to anyone already connected to this room
+	// This is what tells Alice's page to flip from "waiting" → "active"
+	game, err := h.gservice.GetGameState(req.RoomID)
+	if err == nil {
+		h.GameHub.BroadCast(req.RoomID, game)
+	}
+
 	w.WriteHeader(http.StatusOK)
-	// FIXED: No more map[string]string
 	json.NewEncoder(w).Encode(JoinRoomResponse{
 		Message: "Joining Room Succesfull",
 	})
 }
-
 func (h *GameHandler) MoveHandler(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		RoomID    string `json:"room_id"`
