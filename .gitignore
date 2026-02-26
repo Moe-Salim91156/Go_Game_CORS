@@ -10,6 +10,8 @@
 *.so
 *.dylib
 /node_modules
+/playwright-report
+/test-results
 
 # Test binary, built with `go test -c`
 *.test
