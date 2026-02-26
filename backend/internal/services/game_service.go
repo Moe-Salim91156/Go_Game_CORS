@@ -1,39 +1,61 @@
 package services
 
 import (
+	"CorsGame/internal/models"
 	"CorsGame/internal/store/sqlite"
 	"fmt"
 	"strings"
 )
 
 type GameService struct {
-	GameStore   store.GameStore
-	PlayerStore store.PlayerStore
+	gameStore   *store.GameStore
+	playerStore *store.PlayerStore
 }
 
-func NewGameService(gs store.GameStore, ps store.PlayerStore) *GameService {
+func NewGameService(gs *store.GameStore, ps *store.PlayerStore) *GameService {
 	return &GameService{
-		GameStore:   gs,
-		PlayerStore: ps,
+		gameStore:   gs,
+		playerStore: ps,
 	}
 }
 
-// this layer should do the business logic, or what is it called
-// use the store functions to make the game logic backend-wired
+func (g *GameService) GetGameState(gameID string) (*models.GameRoom, error) {
+	return g.gameStore.GetGameState(gameID)
+}
+
+func (g *GameService) GetGameByID(gameID string) (*models.GameRoom, error) {
+	return g.gameStore.GetGameByID(gameID)
+}
+
+func (g *GameService) CreateRoom(roomID string, creatorID int) error {
+	return g.gameStore.CreateNewRoom(roomID, creatorID)
+}
+
+func (g *GameService) JoinRoom(roomID string, playerID int) error {
+	return g.gameStore.JoinRoom(roomID, playerID)
+}
+
+func (g *GameService) CreatePlayer(username, password string) (int, error) {
+	auth := NewAuthService()
+	hashed, err := auth.HashPassword(password)
+	if err != nil {
+		return 0, err
+	}
+	return g.playerStore.CreatePlayer(username, hashed)
+}
 
 func (g *GameService) ExecuteMove(gameID string, PlayerID int, CellIndex int) error {
-
 	if CellIndex < 0 || CellIndex > 8 {
 		return fmt.Errorf("cell index %d is out of bounds", CellIndex)
 	}
-	game, err := g.GameStore.GetGameByID(gameID)
+	game, err := g.gameStore.GetGameByID(gameID)
 	if err != nil {
 		return err
 	}
 	if game.GameState != "active" {
 		return fmt.Errorf("game not active")
 	}
-	if game.Turn_id != PlayerID {
+	if game.TurnID != PlayerID {
 		return fmt.Errorf("Not your Turn ")
 	}
 
@@ -42,37 +64,33 @@ func (g *GameService) ExecuteMove(gameID string, PlayerID int, CellIndex int) er
 		return fmt.Errorf("Cell is already occupied")
 	}
 	playerSymbol := "X"
-	if PlayerID == game.Player_o_id {
+	if PlayerID == game.PlayerOID {
 		playerSymbol = "O"
 	}
 	CookedBoard[CellIndex] = playerSymbol
 
-	// win ? draw ? continue ?
-
 	winnerFlag := g.CheckWinner(CookedBoard)
-	var Winner_id int
+	var WinnerID int
 	tempState := game.GameState
 	if winnerFlag != "" {
 		tempState = "finished"
 		if winnerFlag == "X" {
-			Winner_id = game.Player_x_id
+			WinnerID = game.PlayerXID
 		} else {
-			Winner_id = game.Player_o_id
+			WinnerID = game.PlayerOID
 		}
 	} else if g.CheckDraw(CookedBoard) {
 		tempState = "draw"
 	}
 
 	board := g.UnCookBoard(CookedBoard)
-	err = g.GameStore.UpdateMove(gameID, PlayerID, board)
+	err = g.gameStore.UpdateMove(gameID, PlayerID, board)
 	if err != nil {
 		return fmt.Errorf("failed to update Move %v", err)
 	}
-	return g.GameStore.UpdateGame(gameID, tempState, board, Winner_id)
-
+	return g.gameStore.UpdateGame(gameID, tempState, board, WinnerID)
 }
 
-// function that checks if its draw
 func (g *GameService) CheckDraw(board [9]string) bool {
 	for _, cell := range board {
 		if cell == "" {
@@ -84,28 +102,22 @@ func (g *GameService) CheckDraw(board [9]string) bool {
 
 func (g *GameService) CheckWinner(board [9]string) string {
 	winLines := [8][3]int{
-		{0, 1, 2}, {3, 4, 5}, {6, 7, 8}, // Rows
-		{0, 3, 6}, {1, 4, 7}, {2, 5, 8}, // Columns
-		{0, 4, 8}, {2, 4, 6}, // Diagonals
+		{0, 1, 2}, {3, 4, 5}, {6, 7, 8},
+		{0, 3, 6}, {1, 4, 7}, {2, 5, 8},
+		{0, 4, 8}, {2, 4, 6},
 	}
-	// _> thos are the possible winning indexes
 
 	for _, line := range winLines {
 		a, b, c := line[0], line[1], line[2]
-
 		if board[a] != "-" && board[a] == board[b] && board[b] == board[c] {
-			return board[a] // this here should return the SIMBOL (x or o)
-			// the winner.
+			return board[a]
 		}
 	}
 	return ""
 }
 
-// Cook board , uncook board functions to make board a 3*3 grid
 func (g *GameService) CookBoard(dbString string) [9]string {
-
 	var newBoard [9]string
-
 	for i, char := range dbString {
 		val := string(char)
 		if val == "-" {
@@ -117,20 +129,7 @@ func (g *GameService) CookBoard(dbString string) [9]string {
 	return newBoard
 }
 
-// OLD Uncook board CODE, Research why its inefficient
-// var dbString string
-//	for _, val := range board {
-//		if val == "" {
-//			dbString += "-"
-//		} else {
-//			dbString += val
-//		}
-//	}
-//
-// return dbString
-
 func (g *GameService) UnCookBoard(board [9]string) string {
-	// im gonna use string.builder for its the GO way
 	var builder strings.Builder
 	builder.Grow(9)
 
@@ -142,5 +141,4 @@ func (g *GameService) UnCookBoard(board [9]string) string {
 		}
 	}
 	return builder.String()
-
 }

@@ -21,7 +21,7 @@ func (s *GameStore) GetGameByID(id string) (*models.GameRoom, error) {
 
 	row := s.db.QueryRow(query, id)
 
-	err := row.Scan(&g.ID, &g.Player_x_id, &g.Player_o_id, &g.Board, &g.Turn_id, &g.GameState)
+	err := row.Scan(&g.ID, &g.PlayerXID, &g.PlayerOID, &g.Board, &g.TurnID, &g.GameState)
 	if err != nil {
 		return nil, err
 	}
@@ -71,6 +71,7 @@ func (s *GameStore) UpdateMove(gameID string, userID int, newBoard string) error
 // with board
 func (g *GameStore) UpdateGame(gameID string, newState string, board string, winnerID int) error {
 	query := `UPDATE GameRooms SET game_state = ?, board = ?, winner_id = ? WHERE id = ?`
+	// ungod  this method
 	_, err := g.db.Exec(query, newState, board, winnerID, gameID)
 	return err
 }
@@ -83,11 +84,11 @@ func (s *GameStore) GetGameState(gameID string) (*models.GameRoom, error) {
 	row := s.db.QueryRow(query, gameID)
 	err := row.Scan(
 		&gameRoom.ID,
-		&gameRoom.Player_x_id,
-		&gameRoom.Player_o_id,
-		&gameRoom.Turn_id,
+		&gameRoom.PlayerXID,
+		&gameRoom.PlayerOID,
+		&gameRoom.TurnID,
 		&gameRoom.GameState,
-		&gameRoom.Winner_id,
+		&gameRoom.WinnerID,
 		&gameRoom.Board,
 	)
 	if err != nil {

@@ -6,10 +6,6 @@ import (
 )
 
 func (h *GameHandler) SignupHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
 	var req struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
@@ -18,16 +14,17 @@ func (h *GameHandler) SignupHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
-	playerID, err := h.Gs.PlayerStore.CreatePlayer(req.Username, req.Password)
+	playerID, err := h.gservice.CreatePlayer(req.Username, req.Password)
 	if err != nil {
 		http.Error(w, "User already exists or DB error", http.StatusConflict)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json") // Must be FIRST
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]any{
-		"player_id": playerID,
-		"username":  req.Username,
+	// FIXED: No more map[string]any
+	json.NewEncoder(w).Encode(SignupResponse{
+		PlayerID: playerID,
+		Username: req.Username,
 	})
 }

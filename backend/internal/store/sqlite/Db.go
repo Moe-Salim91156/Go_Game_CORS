@@ -18,13 +18,13 @@ func OpenConnection() (*sql.DB, error) {
 // -> init tables
 func CreateTables(db *sql.DB) error {
 
-	UserTableQuery := `CREATE TABLE IF NOT EXISTS Players (
+	userTableQuery := `CREATE TABLE IF NOT EXISTS Players (
 	id  INTEGER PRIMARY KEY AUTOINCREMENT,
 	username TEXT UNIQUE NOT NULL,
 	password TEXT NOT NULL
 );`
 
-	GameTableQuery := `CREATE TABLE IF NOT EXISTS GameRooms (
+	gameTableQuery := `CREATE TABLE IF NOT EXISTS GameRooms (
 id TEXT PRIMARY KEY,
 player_x_id INTEGER NOT NULL,
 player_o_id INTEGER DEFAULT 0,
@@ -37,11 +37,11 @@ FOREIGN KEY(player_o_id) REFERENCES players(id),
 FOREIGN KEY(turn_id) REFERENCES players(id)
 );`
 
-	_, err := db.Exec(UserTableQuery)
+	_, err := db.Exec(userTableQuery)
 	if err != nil {
 		return err
 	}
-	_, err = db.Exec(GameTableQuery)
+	_, err = db.Exec(gameTableQuery)
 	if err != nil {
 		return err
 	}

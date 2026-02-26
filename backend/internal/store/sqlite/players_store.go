@@ -4,7 +4,6 @@ import (
 	"CorsGame/internal/models"
 	"database/sql"
 	"fmt"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type PlayerStore struct {
@@ -15,29 +14,12 @@ func NewPlayerStore(db *sql.DB) *PlayerStore {
 	return &PlayerStore{db: db}
 }
 
-// create User
-
-// HashPassword converts a plain text password into a Bcrypt hash.
-func HashPassword(password string) (string, error) {
-	// Cost of 10-12 is standard for 2026. Higher = slower but more secure.
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 12)
-	return string(bytes), err
-}
-
-// for now its here , unitl i implelent auth services
-
-// // CheckPasswordHash compares a plain text password with a stored hash.
-// func CheckPasswordHash(password, hash string) bool {
-// 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-// 	return err == nil
-// }
-
-func (p *PlayerStore) CreatePlayer(Username string, Password string) (int, error) {
-
+// Fixed: Removed HashPassword (moved to service)
+// Now accepts already-hashed password
+func (p *PlayerStore) CreatePlayer(Username string, HashedPassword string) (int, error) {
 	query := `INSERT INTO Players (username , password) VALUES (?, ?)`
 
-	hashed_password, err := HashPassword(Password)
-	result, err := p.db.Exec(query, Username, hashed_password)
+	result, err := p.db.Exec(query, Username, HashedPassword)
 	if err != nil {
 		return 0, fmt.Errorf("Could not execute the create player query")
 	}
@@ -49,9 +31,8 @@ func (p *PlayerStore) CreatePlayer(Username string, Password string) (int, error
 }
 
 func (p *PlayerStore) GetPlayerByUsername(username string) (models.Player, error) {
-	// input uername string , select from db and return
 	var player models.Player
-	query := `SELECT (id , username , password FROM players WHERE username = ?)`
+	query := `SELECT id , username , password FROM players WHERE username = ?`
 	row := p.db.QueryRow(query, username)
 
 	err := row.Scan(&player.ID, &player.Username, &player.Password)
@@ -62,9 +43,8 @@ func (p *PlayerStore) GetPlayerByUsername(username string) (models.Player, error
 }
 
 func (p *PlayerStore) GetPlayerById(id int) (models.Player, error) {
-	// input id integer, select from db and return
 	var player models.Player
-	query := `SELECT (id , username , password FROM players WHERE id = ?)`
+	query := `SELECT id , username , password FROM players WHERE id = ?`
 	row := p.db.QueryRow(query, id)
 
 	err := row.Scan(&player.ID, &player.Username, &player.Password)

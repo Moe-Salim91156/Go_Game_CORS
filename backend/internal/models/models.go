@@ -1,13 +1,13 @@
 package models
 
 type GameRoom struct {
-	ID          string `json:"id"`
-	Board       string `json:"board"`
-	Player_x_id int    `json:"player_x"`
-	Player_o_id int    `json:"player_o"`
-	GameState   string `json:"game_state"`
-	Turn_id     int    `json:"turn"`
-	Winner_id   int    `json:"winner_id"`
+	ID        string `json:"id"`
+	Board     string `json:"board"`
+	PlayerXID int    `json:"player_x_id"`
+	PlayerOID int    `json:"player_o_id"`
+	GameState string `json:"game_state"`
+	TurnID    int    `json:"turn_id"`
+	WinnerID  int    `json:"winner_id"`
 }
 
 type Player struct {
