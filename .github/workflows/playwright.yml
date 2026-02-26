@@ -11,20 +11,27 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    # ── Frontend setup ──────────────────────────────────────────────────────
+    # ── Node / Playwright (root) ──────────────────────────────────────────
     - uses: actions/setup-node@v4
       with:
         node-version: lts/*
 
+    - name: Install root dependencies (Playwright)
+      run: npm ci
+
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps
+
+    # ── Frontend dev server (port 5173) ───────────────────────────────────
     - name: Install frontend dependencies
       working-directory: frontend
       run: npm ci
 
-    - name: Install Playwright Browsers
+    - name: Start Frontend Dev Server
       working-directory: frontend
-      run: npx playwright install --with-deps
+      run: npm run dev &
 
-    # ── Backend setup (Go) ──────────────────────────────────────────────────
+    # ── Backend setup (Go) ────────────────────────────────────────────────
     - uses: actions/setup-go@v5
       with:
         go-version: '1.21'
@@ -40,7 +47,7 @@ jobs:
       working-directory: backend
       run: ./server &
 
-    # ── Wait for backend ───────────────────────────────────────────────���──
+    # ── Wait for both servers ─────────────────────────────────────────────
     - name: Wait for Backend
       run: |
         for i in {1..30}; do
@@ -52,14 +59,24 @@ jobs:
           sleep 2
         done
 
+    - name: Wait for Frontend
+      run: |
+        for i in {1..30}; do
+          if curl -sf http://localhost:5173; then
+            echo "Frontend is up!"
+            break
+          fi
+          echo "Waiting for frontend... ($i/30)"
+          sleep 2
+        done
+
     # ── Run tests ─────────────────────────────────────────────────────────
     - name: Run Playwright tests
-      working-directory: frontend
       run: npx playwright test
 
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
         name: playwright-report
-        path: frontend/playwright-report/
+        path: playwright-report/
         retention-days: 30
