@@ -1,19 +1,19 @@
-.PHONY: up down rebuild shell logs tests ps
+.PHONY: up down rebuild shell-backend shell-frontend logs tests test-e2e ps
 
 up:
-	docker-compose up -d
+	docker-compose up -d --build
 
 down:
 	docker-compose down
 
-rebuild: 
+rebuild:
 	docker-compose down
 	docker-compose up -d --build
 
-logs: 
+logs:
 	docker-compose logs
 
-ps : 
+ps:
 	docker ps
 	docker-compose ps
 
@@ -23,7 +23,7 @@ shell-backend: ## Go inside the backend
 shell-frontend: ## Go inside the frontend
 	docker exec -it $$(docker ps -q -f name=frontend) /bin/sh
 
-tests: 
+tests:
 	npx playwright test --headed
 
 test-e2e:
@@ -32,7 +32,7 @@ test-e2e:
 	@echo "Wiping persistent database..."
 	rm -f backend/app.db
 	@echo "Starting fresh containers..."
-	docker-compose up -d --build
+	docker-compose up -d
 	@echo "Waiting for backend to be ready..."
 	@until curl -sf http://localhost:8080/api/health > /dev/null 2>&1; do \
 		echo "  ...backend not ready yet, retrying in 1s"; \
@@ -40,4 +40,4 @@ test-e2e:
 	done
 	@echo "Backend is up!"
 	@echo "Running Playwright..."
-	npx playwright test --headed
+	npx playwright test
