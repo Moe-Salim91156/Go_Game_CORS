@@ -17,11 +17,11 @@ func NewGameStore(db *sql.DB) *GameStore {
 func (s *GameStore) GetGameByID(id string) (*models.GameRoom, error) {
 	var g models.GameRoom
 
-	query := `SELECT id, player_x_id, player_o_id, board, turn_id, game_state FROM gameRooms WHERE id = ?`
+	query := `SELECT id, player_x_id, player_o_id, board, turn_id, game_state, winner_id FROM gameRooms WHERE id = ?`
 
 	row := s.db.QueryRow(query, id)
 
-	err := row.Scan(&g.ID, &g.PlayerXID, &g.PlayerOID, &g.Board, &g.TurnID, &g.GameState)
+	err := row.Scan(&g.ID, &g.PlayerXID, &g.PlayerOID, &g.Board, &g.TurnID, &g.GameState, &g.WinnerID)
 	if err != nil {
 		return nil, err
 	}
